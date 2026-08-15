@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FeedOne — Verified Surplus Food Coordination</title>
+
+<!-- Supabase JavaScript client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --green:#087443;
+  --green-2:#0b8a52;
+  --green-3:#e8f7ef;
+  --dark:#10231b;
+  --muted:#66756e;
+  --bg:#f5f8f6;
+  --card:#fff;
+  --border:#dce7e1;
+  --danger:#c62828;
+  --warning:#9a6700;
+  --shadow:0 18px 50px rgba(20,55,40,.08);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--dark);
+  background:var(--bg);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.container{max-width:1180px;margin:auto;padding:24px}
+.btn{
+  border:0;border-radius:12px;padding:11px 16px;font-weight:700;
+  transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--green);color:#fff}
+.btn.primary:hover{background:#06623a}
+.btn.secondary{background:#eef5f1;color:var(--green)}
+.btn.ghost{background:transparent;color:var(--dark);border:1px solid var(--border)}
+.btn.danger{background:#fff0f0;color:var(--danger);border:1px solid #ffd0d0}
+.btn.full{width:100%}
+
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px}
+.brand-icon{
+  width:42px;height:42px;border-radius:12px;background:var(--green);
+  color:#fff;display:grid;place-items:center;font-size:22px
+}
+.landing{min-height:100vh}
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;background:#fff;border-bottom:1px solid var(--border)
+}
+.hero{
+  max-width:1180px;margin:auto;padding:80px 24px 70px;
+  display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center
+}
+.eyebrow{
+  display:inline-block;background:var(--green-3);color:var(--green);
+  border-radius:999px;padding:8px 13px;font-size:12px;font-weight:900;letter-spacing:.04em
+}
+.hero h1{font-size:clamp(42px,6vw,72px);line-height:.98;margin:18px 0}
+.hero h1 span{color:var(--green)}
+.hero p{font-size:18px;line-height:1.7;color:var(--muted);max-width:650px}
+.actions{display:flex;gap:12px;margin-top:25px;flex-wrap:wrap}
+.hero-card{
+  min-height:420px;border-radius:28px;background:linear-gradient(145deg,#e5f5eb,#f8f3e7);
+  border:1px solid var(--border);display:grid;place-items:center;padding:28px;
+  box-shadow:var(--shadow)
+}
+.workflow{
+  width:100%;background:#d9a867;border-radius:24px;padding:35px;position:relative
+}
+.nodes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.node{
+  background:#fff;border-radius:18px;padding:25px;text-align:center;font-size:34px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08)
+}
+.hero-note{background:#fff;border-radius:16px;padding:18px;margin-top:20px}
+.section{max-width:1180px;margin:auto;padding:45px 24px}
+.section h2{font-size:36px;margin-bottom:24px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:22px
+}
+.muted{color:var(--muted)}
+.footer{border-top:1px solid var(--border);padding:25px;text-align:center;color:var(--muted)}
+
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
+.auth-card{
+  width:min(520px,100%);background:#fff;border:1px solid var(--border);
+  border-radius:24px;padding:30px;box-shadow:var(--shadow)
+}
+.auth-card h1{margin:20px 0 8px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:#f0f4f2;padding:4px;border-radius:12px;margin:22px 0}
+.tab{border:0;background:transparent;padding:11px;border-radius:9px;font-weight:800}
+.tab.active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;padding:12px 13px;border:1px solid var(--border);border-radius:11px;
+  outline:none;background:#fff
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green)}
+.notice{
+  border-radius:12px;padding:12px 14px;font-size:13px;margin-top:15px
+}
+.notice.info{background:#eef6ff;color:#24527b}
+.notice.warning{background:#fff7e6;color:var(--warning)}
+.notice.error{background:#fff0f0;color:var(--danger)}
+
+.loading{
+  min-height:100vh;display:grid;place-items:center;background:#f2f8f4
+}
+.loading-box{
+  background:#fff;border:1px solid var(--border);border-radius:22px;
+  padding:30px;box-shadow:var(--shadow);text-align:center
+}
+.spinner{
+  width:28px;height:28px;border:3px solid #d9e8df;border-top-color:var(--green);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 15px
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.app{min-height:100vh;display:grid;grid-template-columns:245px 1fr}
+.sidebar{
+  background:#075d36;color:#fff;padding:20px;position:sticky;top:0;height:100vh
+}
+.sidebar .brand{color:#fff;margin-bottom:35px}
+.sidebar .brand-icon{background:#fff;color:var(--green)}
+.nav-links{display:grid;gap:8px}
+.nav-link{
+  border:0;background:transparent;color:#d9f0e4;text-align:left;padding:12px;
+  border-radius:10px;font-weight:700
+}
+.nav-link:hover,.nav-link.active{background:#0a8150;color:#fff}
+.sidebar-bottom{position:absolute;bottom:20px;left:20px;right:20px}
+.main{min-width:0}
+.topbar{
+  height:70px;background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px
+}
+.top-actions{display:flex;align-items:center;gap:12px}
+.badge{
+  display:inline-flex;padding:7px 11px;border-radius:999px;font-size:12px;font-weight:900
+}
+.badge.verified{background:#e4f7ec;color:#087443}
+.badge.pending{background:#fff3d9;color:#8a5a00}
+.content{padding:28px;max-width:1400px}
+.page-title{margin:0 0 6px;font-size:32px}
+.page-subtitle{margin:0 0 25px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:25px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px}
+.stat .value{font-size:28px;font-weight:900;margin-top:5px}
+.list{display:grid;gap:13px}
+.food-card{
+  background:#fff;border:1px solid var(--border);border-radius:17px;padding:18px;
+  display:flex;justify-content:space-between;gap:20px;align-items:flex-start
+}
+.food-title{font-size:18px;font-weight:900}
+.food-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chip{background:#eef5f1;color:#385e4c;padding:5px 8px;border-radius:8px;font-size:12px}
+.actions-row{display:flex;gap:8px;flex-wrap:wrap}
+.empty{
+  background:#fff;border:1px dashed var(--border);border-radius:17px;
+  padding:40px;text-align:center;color:var(--muted)
+}
+.modal{
+  position:fixed;inset:0;background:rgba(8,25,17,.5);display:grid;place-items:center;
+  padding:20px;z-index:20
+}
+.modal-card{
+  width:min(650px,100%);max-height:90vh;overflow:auto;background:#fff;
+  border-radius:22px;padding:25px
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-head h2{margin:0}
+.toast{
+  position:fixed;right:20px;bottom:20px;z-index:50;background:#10231b;color:#fff;
+  padding:13px 17px;border-radius:12px;box-shadow:var(--shadow);max-width:380px
+}
+
+@media(max-width:850px){
+  .hero{grid-template-columns:1fr;padding-top:45px}
+  .cards,.stats{grid-template-columns:1fr 1fr}
+  .app{grid-template-columns:1fr}
+  .sidebar{height:auto;position:relative}
+  .sidebar-bottom{position:static;margin-top:25px}
+}
+@media(max-width:600px){
+  .nav{padding:14px 16px}
+  .hero,.section,.content{padding-left:16px;padding-right:16px}
+  .form-grid,.cards,.stats{grid-template-columns:1fr}
+  .food-card{flex-direction:column}
+  .topbar{padding:0 16px}
+  .content{padding-top:20px}
+}
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   FEEDONE — SINGLE FILE FRONTEND
+   ------------------------------------------------------------
+   1. Replace SUPABASE_URL with your project URL.
+   2. Replace SUPABASE_ANON_KEY with the publishable/anon key.
+   3. NEVER put a service-role key in this file.
+   4. This file is designed around these public tables:
+      profiles, food_listings, handovers, audit_logs.
+   ============================================================ */
+
+const SUPABASE_URL = "https://xqkcjajyufzzwnsiuxsk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_w9W0GhKWopXYcJ6PNmNixQ_iRtouSmH";
+
+const hasSupabaseConfig =
+  SUPABASE_URL.startsWith("https://") &&
+  !SUPABASE_URL.includes("YOUR_") &&
+  SUPABASE_ANON_KEY &&
+  !SUPABASE_ANON_KEY.includes("YOUR_");
+
+const sb = hasSupabaseConfig
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+const root = document.getElementById("root");
+
+let currentUser = null;
+let currentProfile = null;
+let currentPage = "overview";
+let authMode = "login";
+
+/* -------------------- HELPERS -------------------- */
+
+function esc(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function brand(){
+  return `<div class="brand">
+    <div class="brand-icon">🌱</div>
+    <span>FeedOne</span>
+  </div>`;
+}
+
+function toast(message){
+  const old=document.querySelector(".toast");
+  if(old) old.remove();
+  const el=document.createElement("div");
+  el.className="toast";
+  el.textContent=message;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+function showLoading(text="Loading FeedOne workspace…"){
+  root.innerHTML=`<div class="loading"><div class="loading-box">
+    <div class="spinner"></div>${brand()}<p class="muted">${esc(text)}</p>
+  </div></div>`;
+}
+
+function formatDate(value){
+  if(!value) return "—";
+  return new Date(value).toLocaleString([],{
+    day:"2-digit",month:"short",year:"numeric",
+    hour:"2-digit",minute:"2-digit"
+  });
+}
+
+function statusBadge(status){
+  const s=String(status||"").toLowerCase();
+  const cls=s==="available"||s==="completed"||s==="handed_over"||s==="verified"
+    ?"verified":"pending";
+  return `<span class="badge ${cls}">${esc(status||"—").replaceAll("_"," ").toUpperCase()}</span>`;
+}
+
+function requireVerified(){
+  if(!currentProfile?.verified){
+    toast("Your account is pending verification.");
+    return false;
+  }
+  return true;
+}
+
+/* -------------------- LANDING -------------------- */
+
+function renderLanding(){
+  root.innerHTML=`
+  <div class="landing">
+    <nav class="nav">
+      ${brand()}
+      <button class="btn primary" onclick="renderAuth('login')">Open Platform →</button>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <span class="eyebrow">VERIFIED COORDINATION INFRASTRUCTURE</span>
+        <h1>Coordinate surplus food <span>before it becomes waste.</span></h1>
+        <p>
+          FeedOne connects verified surplus food generators with verified NGOs
+          through a private, time-sensitive and auditable coordination workflow.
+          It is not a delivery marketplace, payment platform or food-safety
+          certification system.
+        </p>
+        <div class="actions">
+          <button class="btn primary" onclick="renderAuth('login')">Enter workspace →</button>
+          <button class="btn secondary" onclick="document.getElementById('why').scrollIntoView({behavior:'smooth'})">Why FeedOne?</button>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div>
+          <div class="workflow">
+            <div class="nodes">
+              <div class="node">🏫</div>
+              <div class="node">🍱</div>
+              <div class="node">🤝</div>
+            </div>
+            <div class="hero-note">
+              <b>VERIFY → POST → SCREEN → MATCH → HANDOVER → MEASURE</b>
+              <br><small class="muted">Time, capacity, compatibility and accountability stay visible at each stage.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="why">
+      <h2>Why FeedOne?</h2>
+      <div class="cards">
+        <div class="card"><h3>Coordinate</h3><p class="muted">Private institution-to-NGO coordination instead of an open food marketplace.</p></div>
+        <div class="card"><h3>Prioritize</h3><p class="muted">Structured matching using food type, quantity, time, location and NGO capacity.</p></div>
+        <div class="card"><h3>Account</h3><p class="muted">Verification, claims, handovers and audit events create an operational trail.</p></div>
+      </div>
+    </section>
+
+    <div class="footer">© FeedOne — Hackathon Prototype · Supabase · PostgreSQL · Auth · RLS</div>
+  </div>`;
+}
+
+/* -------------------- AUTH -------------------- */
+
+function renderAuth(mode="login"){
+  authMode=mode;
+  root.innerHTML=`
+  <div class="auth-wrap">
+    <div class="auth-card">
+      ${brand()}
+      <h1>${mode==="login"?"Welcome back":"Create FeedOne account"}</h1>
+      <p class="muted">${mode==="login"
+        ?"Sign in to your FeedOne coordination workspace."
+        :"Create a donor or NGO account. Verification is controlled in the database."}</p>
+
+      <div class="tabs">
+        <button class="tab ${mode==="login"?"active":""}" onclick="renderAuth('login')">Sign in</button>
+        <button class="tab ${mode==="signup"?"active":""}" onclick="renderAuth('signup')">Sign up</button>
+      </div>
+
+      ${mode==="signup"?`
+      <div class="form-grid">
+        <div class="field"><label>Full name</label><input id="full" required></div>
+        <div class="field"><label>Organization</label><input id="org" required></div>
+        <div class="field"><label>Role</label>
+          <select id="role">
+            <option value="donor">Donor</option>
+            <option value="ngo">NGO</option>
+          </select>
+        </div>
+        <div class="field"><label>Location / Service zone</label><input id="loc"></div>
+        <div class="field"><label>Capacity (kg)</label><input id="cap" type="number" min="0"></div>
+      </div>`:""}
+
+      <div class="field"><label>Email</label><input id="email" type="email" autocomplete="email"></div>
+      <div class="field"><label>Password</label><input id="pass" type="password" autocomplete="${mode==="login"?"current-password":"new-password"}"></div>
+
+      <button class="btn primary full" onclick="submitAuth()">
+        ${mode==="login"?"Sign in":"Create account"} →
+      </button>
+      <button class="btn ghost full" style="margin-top:8px" onclick="renderLanding()">← Back</button>
+
+      <div class="notice info">
+        New accounts begin as <b>unverified</b>. For the hackathon demo,
+        an administrator can verify the profile in Supabase SQL Editor.
+      </div>
+      ${!hasSupabaseConfig?`
+      <div class="notice warning">
+        Supabase is not configured yet. Replace the two configuration values
+        at the top of this HTML file.
+      </div>`:""}
+    </div>
+  </div>`;
+}
+
+async function submitAuth(){
+  if(!sb){
+    toast("Add your Supabase URL and publishable/anon key first.");
+    return;
+  }
+
+  const email=document.getElementById("email")?.value.trim();
+  const password=document.getElementById("pass")?.value;
+
+  if(!email || !password){
+    toast("Email and password are required.");
+    return;
+  }
+
+  if(authMode==="signup"){
+    const full_name=document.getElementById("full").value.trim();
+    const organization_name=document.getElementById("org").value.trim();
+    const role=document.getElementById("role").value;
+    const location=document.getElementById("loc").value.trim();
+    const capacity_kg=Number(document.getElementById("cap").value||0);
+
+    if(!full_name || !organization_name){
+      toast("Full name and organization are required.");
+      return;
+    }
+
+    const {data,error}=await sb.auth.signUp({
+      email,
+      password,
+      options:{
+        data:{full_name,organization_name,role,location,capacity_kg}
+      }
+    });
+
+    if(error){
+      toast(error.message);
+      return;
+    }
+
+    /*
+      The profile should be created by a database trigger from auth.users.
+      If your schema does not yet have that trigger, we will add it later.
+    */
+
+    toast(data?.session
+      ?"Account created."
+      :"Account created. Check your email if email confirmation is enabled.");
+
+    renderAuth("login");
+    return;
+  }
+
+  const {error}=await sb.auth.signInWithPassword({email,password});
+
+  if(error){
+    toast(error.message);
+    return;
+  }
+
+  await boot();
+}
+
+async function logout(){
+  if(sb) await sb.auth.signOut();
+  currentUser=null;
+  currentProfile=null;
+  renderLanding();
+}
+
+/* -------------------- SESSION + PROFILE -------------------- */
+
+async function getSessionUser(){
+  if(!sb) return null;
+
+  const {data,error}=await sb.auth.getSession();
+
+  if(error){
+    console.error("Session error:",error);
+    return null;
+  }
+
+  return data?.session?.user || null;
+}
+
+async function getProfile(userId){
+  if(!sb || !userId) return null;
+
+  const {data,error}=await sb
+    .from("profiles")
+    .select("id,full_name,organization_name,role,verified,created_at")
+    .eq("id",userId)
+    .maybeSingle();
+
+  if(error){
+    console.error("Profile fetch error:",error);
+    toast("Profile access failed. Check your Supabase RLS policies.");
+    return null;
+  }
+
+  return data;
+}
+
+async function boot(){
+  showLoading();
+
+  if(!sb){
+    renderLanding();
+    return;
+  }
+
+  currentUser=await getSessionUser();
+
+  if(!currentUser){
+    renderLanding();
+    return;
+  }
+
+  currentProfile=await getProfile(currentUser.id);
+
+  if(!currentProfile){
+    root.innerHTML=`
+      <div class="auth-wrap">
+        <div class="auth-card">
+          ${brand()}
+          <h2>Profile not available</h2>
+          <p class="muted">
+            Authentication succeeded, but FeedOne could not read the matching
+            row from <b>public.profiles</b>.
+          </p>
+          <div class="notice error">
+            Check the profiles table, its foreign key to auth.users,
+            and its RLS SELECT policy.
+          </div>
+          <button class="btn ghost full" style="margin-top:12px" onclick="logout()">Sign out</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  currentPage="overview";
+  renderApp();
+}
+
+/* -------------------- APP SHELL -------------------- */
+
+function navItems(){
+  const common=[
+    ["overview","Overview"],
+    ["listings","Active food"],
+    ["handovers","Handovers"],
+    ["audit","Audit logs"]
+  ];
+
+  if(currentProfile?.role==="donor"){
+    return [["overview","Overview"],["listings","My listings"],["handovers","Handovers"],["audit","Audit logs"]];
+  }
+
+  if(currentProfile?.role==="ngo"){
+    return [["overview","Overview"],["listings","Available food"],["handovers","My handovers"],["audit","Audit logs"]];
+  }
+
+  return common;
+}
+
+function renderApp(){
+  const items=navItems();
+
+  root.innerHTML=`
+  <div class="app">
+    <aside class="sidebar">
+      ${brand()}
+      <div class="nav-links">
+        ${items.map(([key,label])=>`
+          <button class="nav-link ${currentPage===key?"active":""}" onclick="navigate('${key}')">
+            ${esc(label)}
+          </button>`).join("")}
+      </div>
+
+      <div class="sidebar-bottom">
+        <div style="font-size:13px;color:#c8e8d8;margin-bottom:10px">
+          ${esc(currentProfile.organization_name||"Organization")}<br>
+          ${esc(currentProfile.role)} · ${currentProfile.verified?"Verified":"Pending"}
+        </div>
+        <button class="btn ghost full" style="color:#fff;border-color:#4a9575" onclick="logout()">Logout</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <b>FeedOne</b>
+          <div class="muted" style="font-size:12px">Verified coordination workspace</div>
+        </div>
+        <div class="top-actions">
+          <span class="badge ${currentProfile.verified?"verified":"pending"}">
+            ${currentProfile.verified?"VERIFIED":"PENDING"}
+          </span>
+          <span class="muted">${esc(currentProfile.organization_name||"")}</span>
+        </div>
+      </header>
+      <section class="content" id="page"></section>
+    </main>
+  </div>`;
+
+  renderCurrentPage();
+}
+
+function navigate(page){
+  currentPage=page;
+  renderApp();
+}
+
+async function renderCurrentPage(){
+  const page=document.getElementById("page");
+  if(!page) return;
+
+  page.innerHTML=`<div class="empty"><div class="spinner"></div>Loading…</div>`;
+
+  if(currentPage==="overview") await renderOverview(page);
+  if(currentPage==="listings") await renderListings(page);
+  if(currentPage==="handovers") await renderHandovers(page);
+  if(currentPage==="audit") await renderAudit(page);
+}
+
+/* -------------------- OVERVIEW -------------------- */
+
+async function renderOverview(page){
+  let listings=[];
+  let handovers=[];
+  let audits=[];
+
+  if(sb){
+    const l=await sb.from("food_listings").select("*").order("created_at",{ascending:false}).limit(100);
+    const h=await sb.from("handovers").select("*").order("created_at",{ascending:false}).limit(100);
+    const a=await sb.from("audit_logs").select("*").order("created_at",{ascending:false}).limit(100);
+
+    if(!l.error) listings=l.data||[];
+    if(!h.error) handovers=h.data||[];
+    if(!a.error) audits=a.data||[];
+  }
+
+  const available=listings.filter(x=>x.status==="available").length;
+  const completed=handovers.filter(x=>x.status==="completed").length;
+  const totalKg=listings.reduce((s,x)=>s+Number(x.quantity_kg||0),0);
+
+  page.innerHTML=`
+    <h1 class="page-title">Overview</h1>
+    <p class="page-subtitle">Welcome, ${esc(currentProfile.full_name||currentProfile.organization_name)}.</p>
+
+    ${!currentProfile.verified?`
+      <div class="notice warning" style="margin-bottom:20px">
+        <b>Verification required.</b>
+        Your account can sign in, but protected FeedOne actions remain restricted
+        until an administrator verifies your organization.
+      </div>`:""}
+
+    <div class="stats">
+      <div class="stat"><div class="muted">Food listings</div><div class="value">${listings.length}</div></div>
+      <div class="stat"><div class="muted">Available</div><div class="value">${available}</div></div>
+      <div class="stat"><div class="muted">Food coordinated</div><div class="value">${totalKg.toFixed(1)} kg</div></div>
+      <div class="stat"><div class="muted">Completed handovers</div><div class="value">${completed}</div></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">FeedOne workflow</h2>
+      <div class="cards">
+        <div><b>01 · Verify</b><p class="muted">Organizations enter the controlled ecosystem.</p></div>
+        <div><b>02 · Post</b><p class="muted">Donors publish structured surplus information.</p></div>
+        <div><b>03 · Match</b><p class="muted">Suitable NGOs are prioritized using explainable criteria.</p></div>
+        <div><b>04 · Handover</b><p class="muted">Pickup and custody milestones are recorded.</p></div>
+        <div><b>05 · Measure</b><p class="muted">Completed coordination becomes an auditable impact record.</p></div>
+      </div>
+    </div>
+  `;
+}
+
+/* -------------------- LISTINGS -------------------- */
+
+async function renderListings(page){
+  if(!sb){
+    page.innerHTML=`<div class="empty">Configure Supabase first.</div>`;
+    return;
+  }
+
+  let query=sb.from("food_listings").select("*").order("created_at",{ascending:false}).limit(100);
+
+  if(currentProfile.role==="donor"){
+    query=query.eq("donor_id",currentUser.id);
+  }else if(currentProfile.role==="ngo"){
+    query=query.eq("status","AVAILABLE");
+  }
+
+  const {data,error}=await query;
+
+  if(error){
+    console.error(error);
+    page.innerHTML=`<div class="notice error"><b>Listings error:</b> ${esc(error.message)}</div>`;
+    return;
+  }
+
+  const listings=data||[];
+
+  page.innerHTML=`
+    <div style="display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap">
+      <div>
+        <h1 class="page-title">${currentProfile.role==="ngo"?"Available food":"My food listings"}</h1>
+        <p class="page-subtitle">${currentProfile.role==="ngo"
+          ?"View surplus opportunities that are currently available."
+          :"Create and monitor your organization's surplus listings."}</p>
+      </div>
+      ${currentProfile.role==="donor"
+        ?`<button class="btn primary" onclick="openListingModal()">+ Create listing</button>`:""}
+    </div>
+
+    <div class="list">
+      ${listings.length?listings.map(foodCard).join(""):
+        `<div class="empty">No food listings found.</div>`}
+    </div>`;
+}
+
+function foodCard(item){
+  const canClaim=currentProfile.role==="ngo" && item.status==="AVAILABLE" && currentProfile.verified;
+  const canEdit=currentProfile.role==="donor" && item.donor_id===currentUser.id;
+
+  return `<div class="food-card">
+    <div>
+      <div class="food-title">${esc(item.food_name)}</div>
+      <div class="food-meta">
+        ${statusBadge(item.status)}
+        <span class="chip">${esc(item.food_type||"Other")}</span>
+        <span class="chip">${Number(item.quantity_kg||0)} kg</span>
+        <span class="chip">Expires ${esc(formatDate(item.expiry_at))}</span>
+        ${item.storage_method?`<span class="chip">Storage: ${esc(item.storage_method)}</span>`:""}
+      </div>
+      <p class="muted" style="margin-bottom:0">Pickup: ${esc(item.pickup_location||"Not specified")}</p>
+    </div>
+    <div class="actions-row">
+      ${canClaim?`<button class="btn primary" onclick="claimFood('${item.id}')">Claim</button>`:""}
+      ${canEdit?`<button class="btn secondary" onclick="markCancelled('${item.id}')">Cancel</button>`:""}
+    </div>
+  </div>`;
+}
+
+function openListingModal(){
+  if(!requireVerified()) return;
+
+  const modal=document.createElement("div");
+  modal.className="modal";
+  modal.id="modal";
+  modal.innerHTML=`
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Create surplus listing</h2>
+        <button class="btn ghost" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="field"><label>Food name</label><input id="m_food_name" placeholder="Cooked rice"></div>
+        <div class="field"><label>Food type</label><input id="m_food_type" placeholder="Vegetarian meal"></div>
+        <div class="field"><label>Quantity (kg)</label><input id="m_quantity" type="number" min="0.1" step="0.1"></div>
+        <div class="field"><label>Pickup location</label><input id="m_location"></div>
+        <div class="field"><label>Prepared at</label><input id="m_prepared" type="datetime-local"></div>
+        <div class="field"><label>Expiry at</label><input id="m_expiry" type="datetime-local"></div>
+        <div class="field" style="grid-column:1/-1"><label>Storage method</label><input id="m_storage" placeholder="Refrigerated / ambient / insulated"></div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn primary" onclick="createListing()">Publish listing</button>
+        <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function closeModal(){
+  document.getElementById("modal")?.remove();
+}
+
+async function createListing(){
+  if(!requireVerified()) return;
+
+  const payload={
+    donor_id:currentUser.id,
+    food_name:document.getElementById("m_food_name").value.trim(),
+    food_type:document.getElementById("m_food_type").value.trim(),
+    quantity_kg:Number(document.getElementById("m_quantity").value),
+    prepared_at:document.getElementById("m_prepared").value || null,
+    storage_method:document.getElementById("m_storage").value.trim(),
+    expiry_at:document.getElementById("m_expiry").value || null,
+    pickup_location:document.getElementById("m_location").value.trim(),
+    status:"AVAILABLE"
+  };
+
+  if(!payload.food_name || !payload.quantity_kg || !payload.expiry_at){
+    toast("Food name, quantity and expiry time are required.");
+    return;
+  }
+
+  const {data,error}=await sb.from("food_listings").insert(payload).select().single();
+
+  if(error){
+    console.error(error);
+    toast(error.message);
+    return;
+  }
+
+  await writeAudit("food_listing_created",data.id);
+
+  closeModal();
+  toast("Food listing created.");
+  renderCurrentPage();
+}
+
+async function markCancelled(id){
+  if(!requireVerified()) return;
+
+  const {error}=await sb
+    .from("food_listings")
+    .update({status:"cancelled"})
+    .eq("id",id)
+    .eq("donor_id",currentUser.id);
+
+  if(error){toast(error.message);return;}
+
+  await writeAudit("food_listing_cancelled",id);
+  toast("Listing cancelled.");
+  renderCurrentPage();
+}
+
+async function claimFood(foodId){
+  if(!requireVerified()) return;
+
+  const { data, error } = await sb
+    .from("food_listings")
+    .update({
+      status: "CLAIMED",
+      claimed_by: currentUser.id
+    })
+    .eq("id", foodId)
+    .eq("status", "AVAILABLE")
+    .select("*");
+
+  if(error){
+    console.error("Claim food error:", error);
+    toast(error.message);
+    return;
+  }
+
+  if(!data || data.length === 0){
+    toast("This listing is no longer available.");
+    renderCurrentPage();
+    return;
+  }
+
+  const listing = data[0];
+
+  const handover = {
+    food_id: foodId,
+    donor_id: listing.donor_id,
+    ngo_id: currentUser.id,
+    inspected: false,
+    donor_confirmed: false,
+    ngo_confirmed: false,
+    status: "COMPLETED"
+  };
+
+  const { data: handoverData, error: handoverError } =
+    await sb
+      .from("handovers")
+      .insert(handover)
+      .select("*");
+
+  if(handoverError){
+    console.error("Handover creation error:", handoverError);
+
+    // Roll the listing back because the claim succeeded
+    await sb
+      .from("food_listings")
+      .update({ status: "AVAILABLE", claimed_by: null })
+      .eq("id", foodId)
+      .eq("claimed_by", currentUser.id);
+
+    toast("Handover creation failed: " + handoverError.message);
+    return;
+  }
+
+  if(!handoverData || handoverData.length === 0){
+    toast("Handover was not created.");
+    return;
+  }
+
+  await writeAudit("food_claimed", foodId);
+
+  toast("Food claimed successfully.");
+  renderCurrentPage();
+}
+/* -------------------- HANDOVERS -------------------- */
+
+async function renderHandovers(page){
+  if(!sb){
+    page.innerHTML=`<div class="empty">Configure Supabase first.</div>`;
+    return;
+  }
+
+  let query=sb.from("handovers").select("*").order("created_at",{ascending:false}).limit(100);
+
+  if(currentProfile.role==="ngo"){
+    query=query.eq("ngo_id",currentUser.id);
+  }else if(currentProfile.role==="donor"){
+    query=query.eq("donor_id",currentUser.id);
+  }
+
+  const {data,error}=await query;
+
+  if(error){
+    page.innerHTML=`<div class="notice error">${esc(error.message)}</div>`;
+    return;
+  }
+
+  const rows=data||[];
+
+  page.innerHTML=`
+    <h1 class="page-title">Handovers</h1>
+    <p class="page-subtitle">Track pickup, inspection, confirmation and completion.</p>
+
+    <div class="list">
+      ${rows.length?rows.map(handoverCard).join(""):
+        `<div class="empty">No handovers yet.</div>`}
+    </div>`;
+}
+
+function handoverCard(h){
+  return `<div class="food-card">
+    <div>
+      <div class="food-title">Food ID: ${esc(h.food_id)}</div>
+      <div class="food-meta">
+        ${statusBadge(h.status)}
+        ${h.inspected?`<span class="chip">Inspected</span>`:`<span class="chip">Inspection pending</span>`}
+        ${h.donor_confirmed?`<span class="chip">Donor confirmed</span>`:""}
+        ${h.ngo_confirmed?`<span class="chip">NGO confirmed</span>`:""}
+      </div>
+      <p class="muted">Created ${esc(formatDate(h.created_at))}</p>
+    </div>
+    <div class="actions-row">
+      ${currentProfile.role==="ngo" && !h.ngo_confirmed
+        ?`<button class="btn primary" onclick="confirmHandover('${h.id}','ngo')">Confirm</button>`:""}
+      ${currentProfile.role==="donor" && !h.donor_confirmed
+        ?`<button class="btn primary" onclick="confirmHandover('${h.id}','donor')">Confirm</button>`:""}
+    </div>
+  </div>`;
+}
+
+async function confirmHandover(id,role){
+  if(!requireVerified()) return;
+
+  const patch=role==="ngo"
+    ?{ngo_confirmed:true}
+    :{donor_confirmed:true};
+
+  const {data,error}=await sb.from("handovers").update(patch).eq("id",id).select().single();
+
+  if(error){toast(error.message);return;}
+
+  if(data.donor_confirmed && data.ngo_confirmed){
+    const {error:e1}=await sb
+      .from("handovers")
+      .update({status:"completed",handover_time:new Date().toISOString()})
+      .eq("id",id);
+
+    if(e1){toast(e1.message);return;}
+
+    await sb.from("food_listings")
+      .update({status:"completed"})
+      .eq("id",data.food_id);
+
+    await writeAudit("handover_completed",data.food_id);
+    toast("Handover completed.");
+  }else{
+    await writeAudit(role+"_confirmed_handover",data.food_id);
+    toast("Confirmation recorded.");
+  }
+
+  renderCurrentPage();
+}
+
+/* -------------------- AUDIT -------------------- */
+
+async function writeAudit(action,foodId=null){
+  if(!sb || !currentUser) return;
+
+  const {error}=await sb.from("audit_logs").insert({
+    actor_id:currentUser.id,
+    action,
+    food_id:foodId
+  });
+
+  if(error) console.warn("Audit log failed:",error.message);
+}
+
+async function renderAudit(page){
+  if(!sb){
+    page.innerHTML=`<div class="empty">Configure Supabase first.</div>`;
+    return;
+  }
+
+  const {data,error}=await sb
+    .from("audit_logs")
+    .select("*")
+    .eq("actor_id",currentUser.id)
+    .order("created_at",{ascending:false})
+    .limit(100);
+
+  if(error){
+    page.innerHTML=`<div class="notice error"><b>Audit error:</b> ${esc(error.message)}</div>`;
+    return;
+  }
+
+  const rows=data||[];
+
+  page.innerHTML=`
+    <h1 class="page-title">Audit logs</h1>
+    <p class="page-subtitle">Your FeedOne operational activity trail.</p>
+
+    <div class="list">
+      ${rows.length?rows.map(x=>`
+        <div class="card">
+          <b>${esc(x.action).replaceAll("_"," ").toUpperCase()}</b>
+          <div class="muted" style="margin-top:6px">${esc(formatDate(x.created_at))}</div>
+          ${x.food_id?`<div class="chip" style="display:inline-block;margin-top:9px">Food: ${esc(x.food_id)}</div>`:""}
+        </div>
+      `).join(""):
+      `<div class="empty">No audit events yet.</div>`}
+    </div>`;
+}
+
+/* -------------------- STARTUP -------------------- */
+
+if(sb){
+  sb.auth.onAuthStateChange((event,session)=>{
+    /*
+      Avoid repeatedly rebuilding the application during TOKEN_REFRESHED.
+      SIGNED_OUT returns to landing. SIGNED_IN is handled by submitAuth/boot.
+    */
+    if(event==="SIGNED_OUT"){
+      currentUser=null;
+      currentProfile=null;
+      renderLanding();
+    }
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
